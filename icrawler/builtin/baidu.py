@@ -4,6 +4,16 @@ import json
 
 from icrawler import Crawler, Parser, SimpleSEFeeder, ImageDownloader
 
+import re
+
+invalid_escape = re.compile(r'\\[0-7]{1,3}')
+
+### http://stackoverflow.com/questions/15198426/fixing-invalid-json-escape
+def replace_with_byte(match):
+    return chr(int(match.group(0)[1:], 8))
+
+def repair(brokenjson):
+    return invalid_escape.sub(replace_with_byte, brokenjson)
 
 class BaiduParser(Parser):
 
@@ -30,7 +40,8 @@ class BaiduParser(Parser):
 
     def parse(self, response):
         try:
-            content = json.loads(response.content.decode('utf-8'))
+#            content = json.loads(response.content.decode('utf-8'))
+            content = json.loads(repair(response.content))
         except:
             self.logger.error('Fail to parse the response in json format')
             return

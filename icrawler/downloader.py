@@ -234,7 +234,7 @@ class ImageDownloader(Downloader):
                     max_num,
                     default_ext='jpg',
                     queue_timeout=5,
-                    req_timeout=5,
+                    req_timeout=60,
                     **kwargs):
         super(ImageDownloader, self).worker_exec(
             max_num, default_ext, queue_timeout, req_timeout, **kwargs)

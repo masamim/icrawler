@@ -180,5 +180,5 @@ class Crawler(object):
                 self.signal.set(feeder_exited=True)
             if not self.parser.is_alive():
                 self.signal.set(parser_exited=True)
-            time.sleep(1)
+            time.sleep(4)
         self.logger.info('Crawling task done!')
