@@ -4,6 +4,8 @@ import json
 
 from icrawler import Crawler, Parser, SimpleSEFeeder, ImageDownloader
 
+from HTMLParser import HTMLParser
+
 import re
 
 invalid_escape = re.compile(r'\\[0-7]{1,3}')
@@ -41,7 +43,7 @@ class BaiduParser(Parser):
     def parse(self, response):
         try:
 #            content = json.loads(response.content.decode('utf-8'))
-            content = json.loads(repair(response.content))
+            content = json.loads(HTMLParser().unescape(response.content.decode('unicode-escape')))
         except:
             self.logger.error('Fail to parse the response in json format')
             return
