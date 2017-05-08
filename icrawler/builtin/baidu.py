@@ -4,18 +4,7 @@ import json
 
 from icrawler import Crawler, Parser, SimpleSEFeeder, ImageDownloader
 
-from HTMLParser import HTMLParser
-
 import re
-
-invalid_escape = re.compile(r'\\[0-7]{1,3}')
-
-### http://stackoverflow.com/questions/15198426/fixing-invalid-json-escape
-def replace_with_byte(match):
-    return chr(int(match.group(0)[1:], 8))
-
-def repair(brokenjson):
-    return invalid_escape.sub(replace_with_byte, brokenjson)
 
 class BaiduParser(Parser):
 
@@ -43,10 +32,13 @@ class BaiduParser(Parser):
     def parse(self, response):
         try:
 #            content = json.loads(response.content.decode('utf-8'))
-            content = json.loads(HTMLParser().unescape(response.content.decode('unicode-escape')))
+            content = json.loads(response.content.decode('unicode-escape'))
         except:
-            self.logger.error('Fail to parse the response in json format')
-            return
+            try:
+                content = json.loads(response.content.decode('utf-8'))
+            except:
+                self.logger.error('Fail to parse the response in json format')
+                return
         for item in content['data']:
             if 'objURL' in item:
                 img_url = self._decode_url(item['objURL'])
@@ -90,7 +82,7 @@ class BaiduImageCrawler(Crawler):
             pass
         feeder_kwargs = dict(
             url_template=('http://image.baidu.com/search/acjson?'
-                          'tn=resultjson_com&ipn=rj&word={}&pn={}&rn=30'),
+                          'tn=resultjson_com&ipn=rj&ie=utf-8&oe=utf-8&word={}&pn={}&rn=30'),
             keyword=keyword,
             offset=offset,
             max_num=max_num,

@@ -113,7 +113,7 @@ class Downloader(ThreadPool):
                 self.logger.error('Exception caught when downloading file %s, '
                                   'error: %s, remaining retry times: %d',
                                   file_url, e, retry - 1)
-                sleep(30)
+                sleep(5)
             else:
                 if self.reach_max_num():
                     self.signal.set(reach_max_num=True)
