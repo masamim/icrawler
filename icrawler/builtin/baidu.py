@@ -46,7 +46,9 @@ class BaiduParser(Parser):
                 img_url = item['hoverURL']
             else:
                 continue
-            yield dict(file_url=img_url)
+            if 'pageNum' in item:
+                name = item['pageNum']
+            yield dict(file_url=img_url, filename=name)
 
 
 class BaiduImageCrawler(Crawler):

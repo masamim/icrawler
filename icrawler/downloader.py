@@ -76,7 +76,8 @@ class Downloader(ThreadPool):
         """
         url_path = urlparse(task['file_url'])[2]
         extension = url_path.split('.')[-1] if '.' in url_path else default_ext
-        file_idx = self.fetched_num + self.file_idx_offset
+#        file_idx = self.fetched_num + self.file_idx_offset
+        file_idx = task['filename']
         return '{:06d}.{}'.format(file_idx, extension)
 
     def reach_max_num(self):
@@ -117,12 +118,14 @@ class Downloader(ThreadPool):
             else:
                 if self.reach_max_num():
                     self.signal.set(reach_max_num=True)
+                    print "Max num reached"
                     break
                 elif response.status_code != 200:
                     self.logger.error('Response status code %d, file %s',
                                       response.status_code, file_url)
                     break
                 elif not self.keep_file(response, **kwargs):
+                    print "Do not keep the file"
                     break
                 with self.lock:
                     self.fetched_num += 1
@@ -226,18 +229,21 @@ class ImageDownloader(Downloader):
         try:
             img = Image.open(BytesIO(response.content))
         except (IOError, OSError):
+            print "IO or OS Error"
             return False
         if min_size and not self._size_gt(img.size, min_size):
+            print "Lower than min_size"
             return False
         if max_size and not self._size_lt(img.size, max_size):
+            print "Above max_size"
             return False
         return True
 
     def worker_exec(self,
                     max_num,
-                    default_ext='jpg',
-                    queue_timeout=5,
-                    req_timeout=60,
+                    default_ext='',
+                    queue_timeout=20,
+                    req_timeout=20,
                     **kwargs):
         super(ImageDownloader, self).worker_exec(
             max_num, default_ext, queue_timeout, req_timeout, **kwargs)
