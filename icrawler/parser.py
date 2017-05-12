@@ -45,7 +45,7 @@ class Parser(ThreadPool):
 
     def worker_exec(self,
                     queue_timeout=2,
-                    req_timeout=20,
+                    req_timeout=60,
                     max_retry=3,
                     **kwargs):
         """Target method of workers.
