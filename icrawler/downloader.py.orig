@@ -129,6 +129,27 @@ class Downloader(ThreadPool):
                 with self.lock:
                     self.fetched_num += 1
                     filename = self.get_filename(task, default_ext)
+<<<<<<< HEAD
+=======
+                # Limit the amount of downloads
+                global last_check
+                global allowance
+                current = datetime.now()
+                time_passed = current - last_check
+                allowance += len(response.content)
+
+                if time_passed < timedelta(days=1):
+                    if allowance >= rate:
+                        self.logger.info('Data usage exceeding 10GB. Sleeping for %d seconds. Feel free to end the program and restart. Remember to remove previous names in query list.', rest_of_day)
+                        rest_of_day = (timedelta(minutes=1) - time_passed).total_seconds()
+                        sleep(rest_of_day)
+                else:
+                    last_check = current
+                
+                if allowance >= rate:
+                    allowance = 0
+                    
+>>>>>>> cb5a922... Change code to be friendly with Python3
                 self.logger.info('image #%s\t%s', self.fetched_num, file_url)
                 self.storage.write(filename, response.content)
                 break
@@ -240,9 +261,9 @@ class ImageDownloader(Downloader):
 
     def worker_exec(self,
                     max_num,
-                    default_ext='jpg',
-                    queue_timeout=5,
-                    req_timeout=8,
+                    default_ext='',
+                    queue_timeout=20,
+                    req_timeout=20,
                     **kwargs):
         super(ImageDownloader, self).worker_exec(
             max_num, default_ext, queue_timeout, req_timeout, **kwargs)
