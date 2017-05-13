@@ -10,7 +10,12 @@ from six.moves.urllib.parse import urlparse
 from icrawler.utils import ThreadPool
 
 from time import sleep
+from datetime import datetime, timedelta
 
+# For limiting data usage
+rate = 1e10 # unit: Bytes -> Limit to 10GB
+allowance = 0
+last_check = datetime.now()
 
 class Downloader(ThreadPool):
     """Base class for downloader.
@@ -130,6 +135,26 @@ class Downloader(ThreadPool):
                 with self.lock:
                     self.fetched_num += 1
                     filename = self.get_filename(task, default_ext)
+                # Limit the amount of downloads
+                global last_check
+                global allowance
+                current = datetime.now()
+                time_passed = current - last_check
+                print allowance
+                allowance += len(response.content)
+
+                if time_passed < timedelta(days=1):
+                    if allowance >= rate:
+                        self.logger.info('Data usage exceeding 10GB. Sleeping for the rest of the day. Feel free to end the program and restart. Remember to remove previous names in query list.')
+                        rest_of_day = (timedelta(minutes=1) - time_passed).total_seconds()
+                        print rest_of_day
+                        sleep(rest_of_day)
+                else:
+                    last_check = current
+                
+                if allowance >= rate:
+                    allowance = 0
+                    
                 self.logger.info('image #%s\t%s', self.fetched_num, file_url)
                 self.storage.write(filename, response.content)
                 break
