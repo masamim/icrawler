@@ -123,14 +123,13 @@ class Downloader(ThreadPool):
             else:
                 if self.reach_max_num():
                     self.signal.set(reach_max_num=True)
-                    print "Max num reached"
                     break
                 elif response.status_code != 200:
                     self.logger.error('Response status code %d, file %s',
                                       response.status_code, file_url)
                     break
                 elif not self.keep_file(response, **kwargs):
-                    print "Do not keep the file"
+                    self.logger.error("Do not keep the file")
                     break
                 with self.lock:
                     self.fetched_num += 1
@@ -140,14 +139,12 @@ class Downloader(ThreadPool):
                 global allowance
                 current = datetime.now()
                 time_passed = current - last_check
-                print allowance
                 allowance += len(response.content)
 
                 if time_passed < timedelta(days=1):
                     if allowance >= rate:
-                        self.logger.info('Data usage exceeding 10GB. Sleeping for the rest of the day. Feel free to end the program and restart. Remember to remove previous names in query list.')
+                        self.logger.info('Data usage exceeding 10GB. Sleeping for %d seconds. Feel free to end the program and restart. Remember to remove previous names in query list.', rest_of_day)
                         rest_of_day = (timedelta(minutes=1) - time_passed).total_seconds()
-                        print rest_of_day
                         sleep(rest_of_day)
                 else:
                     last_check = current
@@ -254,13 +251,13 @@ class ImageDownloader(Downloader):
         try:
             img = Image.open(BytesIO(response.content))
         except (IOError, OSError):
-            print "IO or OS Error"
+            self.logger.error("IO or OS Error")
             return False
         if min_size and not self._size_gt(img.size, min_size):
-            print "Lower than min_size"
+            self.logger.error("Lower than min_size")
             return False
         if max_size and not self._size_lt(img.size, max_size):
-            print "Above max_size"
+            self.logger.error("Above max_size")
             return False
         return True
 
